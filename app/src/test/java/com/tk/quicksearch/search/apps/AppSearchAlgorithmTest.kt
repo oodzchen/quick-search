@@ -159,6 +159,58 @@ class AppSearchAlgorithmTest {
         assertEquals(listOf(wechat), matches)
     }
 
+    @Test
+    fun packageNameSearchIsCaseInsensitive() {
+        val quickSearch = app("Quick Search", "quicksearch").copy(packageName = "com.TK.QuickSearch")
+
+        val matches =
+            findMatches(
+                query = "COM.TK.QUICKSEARCH",
+                apps = listOf(quickSearch),
+            )
+
+        assertEquals(listOf(quickSearch), matches)
+    }
+
+    @Test
+    fun packageNameSearchMatchesMiddleSegment() {
+        val quickSearch = app("Launcher", "quicksearch").copy(packageName = "com.tk.quicksearch")
+
+        val matches =
+            findMatches(
+                query = "tk.quick",
+                apps = listOf(quickSearch),
+            )
+
+        assertEquals(listOf(quickSearch), matches)
+    }
+
+    @Test
+    fun packageNameSearchSupportsTypos() {
+        val quickSearch = app("Launcher", "quicksearch").copy(packageName = "com.tk.quicksearch")
+
+        val matches =
+            findMatches(
+                query = "quickserch",
+                apps = listOf(quickSearch),
+            )
+
+        assertEquals(listOf(quickSearch), matches)
+    }
+
+    private fun findMatches(
+        query: String,
+        apps: List<AppInfo>,
+    ): List<AppInfo> =
+        AppSearchAlgorithm.findMatches(
+            query = query,
+            source = apps,
+            limit = 10,
+            fuzzySearchStrategy = FuzzyAppSearchStrategy(FuzzySearchConfig.DEFAULT_APP_CONFIG),
+            appNicknames = emptyMap(),
+            sortAppsByUsageEnabled = false,
+        )
+
     private fun app(
         appName: String,
         packageSuffix: String,

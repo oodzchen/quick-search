@@ -8,6 +8,10 @@ plugins {
     id("kotlin-parcelize")
 }
 
+val releaseStorePassword = providers.gradleProperty("QUICK_SEARCH_STORE_PASSWORD")
+val releaseKeyAlias = providers.gradleProperty("QUICK_SEARCH_KEY_ALIAS")
+val releaseKeyPassword = providers.gradleProperty("QUICK_SEARCH_KEY_PASSWORD")
+
 android {
     namespace = "com.tk.quicksearch"
     compileSdk = 36
@@ -16,8 +20,8 @@ android {
         applicationId = "com.tk.quicksearch"
         minSdk = 24
         targetSdk = 36
-        versionCode = 68
-        versionName = "3.8.1"
+        versionCode = 69
+        versionName = "3.8.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,6 +37,19 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${System.getProperty("user.home")}/keystores/android-keystore.jks")
+            storePassword = releaseStorePassword.orNull
+            keyAlias = releaseKeyAlias.orNull
+            keyPassword = releaseKeyPassword.orNull
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -42,7 +59,7 @@ android {
             resValue("string", "app_name", "QS Debug")
         }
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

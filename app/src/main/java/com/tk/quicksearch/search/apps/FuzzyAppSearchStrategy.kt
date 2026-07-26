@@ -13,7 +13,7 @@ import com.tk.quicksearch.search.utils.SearchTextNormalizer
 
 /**
  * Fuzzy search strategy specifically for app search.
- * Handles fuzzy matching of app names and nicknames.
+ * Handles fuzzy matching of app names, package names, and nicknames.
  */
 class FuzzyAppSearchStrategy(
     override val config: FuzzySearchConfig,
@@ -21,7 +21,7 @@ class FuzzyAppSearchStrategy(
 ) : BaseFuzzySearchStrategy<AppInfo>() {
     /**
      * Finds fuzzy matches for apps based on the query.
-     * Searches both app names and nicknames.
+     * Searches app names, package names, and nicknames.
      */
     override fun findMatches(
         query: String,
@@ -65,7 +65,7 @@ class FuzzyAppSearchStrategy(
     ): FuzzySearchStrategy.Match<AppInfo>? {
         val policy = appPolicyFor(query)
         if (!policy.enabled) return null
-        val alternateNames = buildAlternateNames(nickname, initials)
+        val alternateNames = buildAlternateNames(app.packageName, nickname, initials)
         val score = engine.computeScore(query, app.appName, alternateNames, policy.minimumQueryLength)
         return if (score >= policy.minimumScore && isWithinTypoTolerance(query, app.appName, alternateNames, policy)) {
             FuzzySearchStrategy.Match(
@@ -86,31 +86,34 @@ class FuzzyAppSearchStrategy(
     fun isTypoEligibleCandidate(
         query: String,
         appName: String,
+        packageName: String,
         nickname: String?,
         initials: List<String> = emptyList(),
     ): Boolean {
         val policy = appPolicyFor(query)
         if (!policy.enabled) return false
-        val alternateNames = buildAlternateNames(nickname, initials)
+        val alternateNames = buildAlternateNames(packageName, nickname, initials)
         return isWithinTypoTolerance(query, appName, alternateNames, policy)
     }
 
     fun isTokenCoveredByApp(
         token: String,
         appName: String,
+        packageName: String,
         nickname: String?,
         initials: List<String> = emptyList(),
     ): Boolean {
         val tokenLower = SearchTextNormalizer.normalizeForSearch(token)
         val nameVariants = SearchTextNormalizer.searchableVariants(appName)
         if (nameVariants.any { it.contains(tokenLower) }) return true
+        if (SearchTextNormalizer.normalizeForSearch(packageName).contains(tokenLower)) return true
         nickname?.let { nick ->
             if (SearchTextNormalizer.searchableVariants(nick).any { it.contains(tokenLower) }) return true
         }
         if (initials.any { it.contains(tokenLower) }) return true
 
         val alternateNames =
-            sequenceOf(nickname)
+            sequenceOf(packageName, nickname)
                 .filterNotNull()
                 .plus(initials.asSequence())
                 .filter { it.isNotBlank() }
@@ -123,10 +126,11 @@ class FuzzyAppSearchStrategy(
     }
 
     private fun buildAlternateNames(
+        packageName: String,
         nickname: String?,
         initials: List<String>,
     ): String? =
-        sequenceOf(nickname)
+        sequenceOf(packageName, nickname)
             .filterNotNull()
             .plus(initials.asSequence())
             .filter { it.isNotBlank() }

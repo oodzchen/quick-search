@@ -95,12 +95,20 @@ object AppSearchAlgorithm {
     ): AppMatch? {
         val nickname = appNicknames[app.packageName]
         val initials = AppSearchInitials.initialsFor(app)
-        val priority = AppSearchPolicy.matchPriority(app.appName, nickname, queryContext, initials)
+        val priority =
+            AppSearchPolicy.matchPriority(
+                appName = app.appName,
+                packageName = app.packageName,
+                nickname = nickname,
+                query = queryContext,
+                initials = initials,
+            )
         if (AppSearchPolicy.hasMatch(priority)) {
             if (
                 !AppSearchPolicy.areAllQueryTokensCovered(
                     queryContext,
                     app.appName,
+                    app.packageName,
                     nickname,
                     initials,
                     fuzzySearchStrategy,
@@ -115,6 +123,7 @@ object AppSearchAlgorithm {
             !fuzzySearchStrategy.isTypoEligibleCandidate(
                 query = queryContext.normalizedQuery,
                 appName = app.appName,
+                packageName = app.packageName,
                 nickname = nickname,
                 initials = initials,
             )
@@ -137,6 +146,7 @@ object AppSearchAlgorithm {
                 !AppSearchPolicy.areAllQueryTokensCovered(
                     queryContext,
                     app.appName,
+                    app.packageName,
                     nickname,
                     initials,
                     fuzzySearchStrategy,

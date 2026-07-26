@@ -11,12 +11,17 @@ object AppSearchPolicy {
 
     fun matchPriority(
         appName: String,
+        packageName: String,
         nickname: String?,
         query: SearchQueryContext,
         initials: List<String> = emptyList(),
         matcher: SearchMatcher = DefaultSearchMatcher,
     ): Int {
-        val basePriority = matcher.match(primaryText = appName, query = query, nickname = nickname)
+        val basePriority =
+            minOf(
+                matcher.match(primaryText = appName, query = query, nickname = nickname),
+                matcher.match(primaryText = packageName, query = query),
+            )
         if (matcher.isMatch(basePriority) || initials.isEmpty()) return basePriority
 
         val initialsPriority = matcher.matchAny(query, *initials.toTypedArray())
@@ -32,13 +37,20 @@ object AppSearchPolicy {
     fun areAllQueryTokensCovered(
         query: SearchQueryContext,
         appName: String,
+        packageName: String,
         nickname: String?,
         initials: List<String>,
         fuzzySearchStrategy: FuzzyAppSearchStrategy,
     ): Boolean {
         if (query.tokens.size <= 1) return true
         return query.tokens.all { token ->
-            fuzzySearchStrategy.isTokenCoveredByApp(token, appName, nickname, initials)
+            fuzzySearchStrategy.isTokenCoveredByApp(
+                token = token,
+                appName = appName,
+                packageName = packageName,
+                nickname = nickname,
+                initials = initials,
+            )
         }
     }
 }
