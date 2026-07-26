@@ -35,7 +35,9 @@ object FuzzyMatcher {
         ) {
             return 0
         }
-        return tokenSetRatio(trimmedQuery, trimmedTarget)
+        return SearchTextNormalizer
+            .searchableVariants(trimmedTarget)
+            .maxOf { targetVariant -> tokenSetRatio(trimmedQuery, targetVariant) }
     }
 
     /**
@@ -268,7 +270,11 @@ object FuzzyMatcher {
     ): Boolean {
         if (query.isBlank() || target.isBlank()) return false
         val queryTokens = tokenizeUnique(query).ordered
-        val targetTokens = tokenizeUnique(target).ordered
+        val targetTokens =
+            SearchTextNormalizer
+                .searchableVariants(target)
+                .flatMap { tokenizeUnique(it).ordered }
+                .distinct()
         if (queryTokens.isEmpty() || targetTokens.isEmpty()) return false
         for (queryToken in queryTokens) {
             for (targetToken in targetTokens) {

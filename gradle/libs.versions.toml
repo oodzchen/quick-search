@@ -17,6 +17,7 @@ playUpdate = "2.1.0"
 playServicesOssLicenses = "17.3.0"
 ossLicensesPlugin = "0.10.10"
 libphonenumber = "8.13.36"
+pinyin4j = "2.5.1"
 profileinstaller = "1.4.1"
 benchmarkMacro = "1.3.4"
 uiautomator = "2.3.0"
@@ -54,6 +55,7 @@ play-review-ktx = { group = "com.google.android.play", name = "review-ktx", vers
 play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "playUpdate" }
 play-services-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "playServicesOssLicenses" }
 libphonenumber = { group = "com.googlecode.libphonenumber", name = "libphonenumber", version.ref = "libphonenumber" }
+pinyin4j = { group = "com.belerweb", name = "pinyin4j", version.ref = "pinyin4j" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacro" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }

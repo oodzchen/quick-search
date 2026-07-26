@@ -60,4 +60,25 @@ class SearchRankingUtilsTest {
 
         assertTrue(DefaultSearchMatcher.isMatch(priority))
     }
+
+    @Test
+    fun chineseNameMatchesFullPinyin() {
+        val priority = SearchRankingUtils.calculateMatchPriority("微信支付", "weixinzhifu")
+
+        assertTrue(DefaultSearchMatcher.isMatch(priority))
+    }
+
+    @Test
+    fun chineseNameMatchesPinyinInitials() {
+        val priority = SearchRankingUtils.calculateMatchPriority("微信支付", "wxzf")
+
+        assertTrue(DefaultSearchMatcher.isMatch(priority))
+    }
+
+    @Test
+    fun chineseNameMatchesPinyinFromMiddleOfName() {
+        val priority = SearchRankingUtils.calculateMatchPriority("微信支付", "xinzhifu")
+
+        assertTrue(DefaultSearchMatcher.isMatch(priority))
+    }
 }

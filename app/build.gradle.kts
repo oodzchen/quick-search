@@ -16,8 +16,8 @@ android {
         applicationId = "com.tk.quicksearch"
         minSdk = 24
         targetSdk = 36
-        versionCode = 67
-        versionName = "3.8"
+        versionCode = 68
+        versionName = "3.8.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -101,6 +101,7 @@ dependencies {
     "standardImplementation"(libs.play.review.ktx)
     "standardImplementation"(libs.play.app.update.ktx)
     implementation(libs.libphonenumber)
+    implementation(libs.pinyin4j)
     implementation(libs.reorderable)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.room.runtime)

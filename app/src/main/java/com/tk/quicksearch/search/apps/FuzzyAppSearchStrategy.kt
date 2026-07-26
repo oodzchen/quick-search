@@ -102,10 +102,10 @@ class FuzzyAppSearchStrategy(
         initials: List<String> = emptyList(),
     ): Boolean {
         val tokenLower = SearchTextNormalizer.normalizeForSearch(token)
-        val nameLower = SearchTextNormalizer.normalizeForSearch(appName)
-        if (nameLower.contains(tokenLower)) return true
+        val nameVariants = SearchTextNormalizer.searchableVariants(appName)
+        if (nameVariants.any { it.contains(tokenLower) }) return true
         nickname?.let { nick ->
-            if (SearchTextNormalizer.normalizeForSearch(nick).contains(tokenLower)) return true
+            if (SearchTextNormalizer.searchableVariants(nick).any { it.contains(tokenLower) }) return true
         }
         if (initials.any { it.contains(tokenLower) }) return true
 
@@ -141,22 +141,23 @@ class FuzzyAppSearchStrategy(
     ): Boolean {
         if (query.length < policy.minimumQueryLength) return true
         val normalizedQuery = SearchTextNormalizer.normalizeForSearch(query)
-        val normalizedAppName = SearchTextNormalizer.normalizeForSearch(appName)
-        if (
-            FuzzyMatcher.hasTokenWithinEditDistance(
-                normalizedQuery,
-                normalizedAppName,
-                policy.maximumEditDistance,
-            )
-        ) {
+        if (SearchTextNormalizer.searchableVariants(appName).any { appNameVariant ->
+                FuzzyMatcher.hasTokenWithinEditDistance(
+                    normalizedQuery,
+                    appNameVariant,
+                    policy.maximumEditDistance,
+                )
+            }) {
             return true
         }
         return alternateNames?.let {
-            FuzzyMatcher.hasTokenWithinEditDistance(
-                normalizedQuery,
-                SearchTextNormalizer.normalizeForSearch(it),
-                policy.maximumEditDistance,
-            )
+            SearchTextNormalizer.searchableVariants(it).any { alternateVariant ->
+                FuzzyMatcher.hasTokenWithinEditDistance(
+                    normalizedQuery,
+                    alternateVariant,
+                    policy.maximumEditDistance,
+                )
+            }
         } ?: false
     }
 

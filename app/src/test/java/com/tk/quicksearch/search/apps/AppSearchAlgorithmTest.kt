@@ -125,6 +125,40 @@ class AppSearchAlgorithmTest {
         assertTrue(matches.contains(github))
     }
 
+    @Test
+    fun chineseAppMatchesPinyinFromMiddleOfName() {
+        val wechatPay = app("微信支付", "wechatpay")
+
+        val matches =
+            AppSearchAlgorithm.findMatches(
+                query = "xinzhifu",
+                source = listOf(wechatPay),
+                limit = 10,
+                fuzzySearchStrategy = FuzzyAppSearchStrategy(FuzzySearchConfig.DEFAULT_APP_CONFIG),
+                appNicknames = emptyMap(),
+                sortAppsByUsageEnabled = false,
+            )
+
+        assertEquals(listOf(wechatPay), matches)
+    }
+
+    @Test
+    fun chineseAppMatchesPinyinTypo() {
+        val wechat = app("微信", "wechat")
+
+        val matches =
+            AppSearchAlgorithm.findMatches(
+                query = "weixn",
+                source = listOf(wechat),
+                limit = 10,
+                fuzzySearchStrategy = FuzzyAppSearchStrategy(FuzzySearchConfig.DEFAULT_APP_CONFIG),
+                appNicknames = emptyMap(),
+                sortAppsByUsageEnabled = false,
+            )
+
+        assertEquals(listOf(wechat), matches)
+    }
+
     private fun app(
         appName: String,
         packageSuffix: String,

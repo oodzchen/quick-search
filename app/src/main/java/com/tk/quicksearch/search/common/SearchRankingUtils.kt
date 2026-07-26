@@ -51,7 +51,23 @@ object SearchRankingUtils {
     ): Int {
         if (normalizedQuery.isBlank()) return PRIORITY_NO_MATCH
 
-        val normalizedText = SearchTextNormalizer.normalizeForSearch(text)
+        val searchableVariants = SearchTextNormalizer.searchableVariants(text)
+        return searchableVariants.minOf { normalizedText ->
+            calculateNormalizedMatchPriority(
+                normalizedText = normalizedText,
+                normalizedQuery = normalizedQuery,
+                queryTokens = queryTokens,
+                compactQuery = compactQuery,
+            )
+        }
+    }
+
+    private fun calculateNormalizedMatchPriority(
+        normalizedText: String,
+        normalizedQuery: String,
+        queryTokens: List<String>,
+        compactQuery: String,
+    ): Int {
         val compactText = SearchTextNormalizer.compactForSearch(normalizedText)
         val isMultiWord = queryTokens.size > 1
         val primaryToken = queryTokens.lastOrNull() ?: normalizedQuery

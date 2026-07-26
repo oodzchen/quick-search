@@ -57,4 +57,16 @@ class FuzzyMatcherTest {
 
         assertEquals(listOf("settings", "settlings"), matches.map { it.item })
     }
+
+    @Test
+    fun chineseTargetAllowsPinyinTypoWithinEditDistance() {
+        val score =
+            FuzzyMatcher.score(
+                query = "weixn",
+                target = "微信",
+                maxEditDistance = 1,
+            )
+
+        assertTrue(score > 0)
+    }
 }
