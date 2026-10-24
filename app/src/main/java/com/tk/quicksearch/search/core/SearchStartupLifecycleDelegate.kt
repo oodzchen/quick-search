@@ -234,6 +234,10 @@ internal class SearchStartupLifecycleDelegate(
             loadPinnedAndExcludedCalendarEvents()
         }
 
+        if (startupComplete) {
+            reconcileAppsIfPackagesChanged()
+        }
+
         val now = System.currentTimeMillis()
         if (startupComplete && now - stateAccess.lastBrowserTargetRefreshMs >= BROWSER_REFRESH_INTERVAL_MS) {
             stateAccess.lastBrowserTargetRefreshMs = now
@@ -545,23 +549,42 @@ internal class SearchStartupLifecycleDelegate(
                     )
                 }
             }
-            repository.startPackageChangeMonitoring {
-                packageRefreshJob?.cancel()
-                packageRefreshJob =
-                    scope.launch(startupDispatcher) {
-                        delay(PACKAGE_CHANGE_DEBOUNCE_MS)
-                        while (isQueryActive()) delay(OPTIONAL_STARTUP_QUERY_RECHECK_MS)
-                        loadApps()
-                    }
-            }
+            repository.startPackageChangeMonitoring { schedulePackageRefresh() }
             withContext(Dispatchers.Default) { refreshDerivedState(null, null) }
             saveStartupSurfaceSnapshotAsync(true, false)
+        }
+    }
+
+    private fun schedulePackageRefresh(waitForIdleQuery: Boolean = true) {
+        packageRefreshJob?.cancel()
+        packageRefreshJob =
+            scope.launch(startupDispatcher) {
+                delay(PACKAGE_CHANGE_DEBOUNCE_MS)
+                if (waitForIdleQuery) {
+                    while (isQueryActive()) delay(OPTIONAL_STARTUP_QUERY_RECHECK_MS)
+                }
+                loadApps()
+            }
+    }
+
+    /**
+     * Package callbacks are not delivered while the process is dead or frozen in the background,
+     * so compare against the PackageManager change sequence whenever the UI comes back. Users
+     * often type the new app's name right away, so this refresh does not wait for an idle query.
+     */
+    private fun reconcileAppsIfPackagesChanged() {
+        if (packageRefreshJob?.isActive == true) return
+        scope.launch(Dispatchers.IO) {
+            if (repository.isAppCatalogInvalidated() || repository.hasPackageChangesSinceCache()) {
+                withContext(Dispatchers.Main) { schedulePackageRefresh(waitForIdleQuery = false) }
+            }
         }
     }
 
     private fun shouldReconcileAppsAtStartup(): Boolean {
         if (appSearchManager.cachedApps.isEmpty()) return true
         if (repository.isAppCatalogInvalidated()) return true
+        if (repository.hasPackageChangesSinceCache()) return true
         val ageMs = System.currentTimeMillis() - repository.cacheLastUpdatedMillis()
         return ageMs !in 0 until APP_RECONCILIATION_FRESHNESS_MS
     }

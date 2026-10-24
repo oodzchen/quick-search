@@ -66,6 +66,31 @@ class AppCache(
      */
     fun getLastUpdateTime(): Long = prefs.getLong(KEY_LAST_UPDATE, 0L)
 
+    /**
+     * PackageManager change sequence observed when the cache was last reconciled. Sequence numbers
+     * reset on reboot, so they are only comparable within the recorded boot.
+     */
+    fun getPackageSequenceSnapshot(): PackageSequenceSnapshot? {
+        if (!prefs.contains(KEY_PACKAGE_SEQUENCE)) return null
+        return PackageSequenceSnapshot(
+            bootCount = prefs.getInt(KEY_PACKAGE_BOOT_COUNT, -1),
+            sequenceNumber = prefs.getInt(KEY_PACKAGE_SEQUENCE, 0),
+        )
+    }
+
+    fun savePackageSequenceSnapshot(snapshot: PackageSequenceSnapshot) {
+        prefs
+            .edit()
+            .putInt(KEY_PACKAGE_BOOT_COUNT, snapshot.bootCount)
+            .putInt(KEY_PACKAGE_SEQUENCE, snapshot.sequenceNumber)
+            .apply()
+    }
+
+    data class PackageSequenceSnapshot(
+        val bootCount: Int,
+        val sequenceNumber: Int,
+    )
+
     fun clearCache() {
         prefs.edit().clear().apply()
         cacheFile.delete()
@@ -115,6 +140,8 @@ class AppCache(
         private const val PREFS_NAME = "app_cache"
         private const val KEY_APP_LIST = "app_list"
         private const val KEY_LAST_UPDATE = "last_update"
+        private const val KEY_PACKAGE_BOOT_COUNT = "package_boot_count"
+        private const val KEY_PACKAGE_SEQUENCE = "package_sequence"
         private const val CACHE_FILE_NAME = "app_cache_v1.bin"
         private const val CACHE_FILE_VERSION = 3
 

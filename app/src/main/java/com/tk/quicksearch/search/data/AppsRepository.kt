@@ -16,6 +16,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.UserHandle
 import android.os.UserManager
+import android.provider.Settings
 import com.tk.quicksearch.search.common.UserHandleUtils
 import com.tk.quicksearch.search.models.AppInfo
 import com.tk.quicksearch.search.utils.PermissionUtils
@@ -67,6 +68,20 @@ class AppsRepository(
 
     fun isAppCatalogInvalidated(): Boolean = appCatalogInvalidated
 
+    /**
+     * Detects installs, removals and updates that happened while no [LauncherApps.Callback] was
+     * registered (process killed or frozen), so the cached catalog can be reconciled on launch.
+     * Only covers the current user profile.
+     */
+    fun hasPackageChangesSinceCache(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        val bootCount = currentBootCount() ?: return false
+        val snapshot = appCache.getPackageSequenceSnapshot() ?: return true
+        if (snapshot.bootCount != bootCount) return true
+        return runCatching { packageManager.getChangedPackages(snapshot.sequenceNumber) != null }
+            .getOrDefault(false)
+    }
+
     fun startPackageChangeMonitoring(onCatalogInvalidated: () -> Unit) {
         val service = launcherApps ?: return
         if (launcherAppsCallback != null) return
@@ -108,6 +123,8 @@ class AppsRepository(
         includeNonLaunchableApps: Boolean = false,
         launchCounts: Map<String, Int> = emptyMap(),
     ): List<AppInfo> {
+        // Captured before querying so changes landing mid-scan are still detected next time.
+        val packageSequenceSnapshot = currentPackageSequenceSnapshot()
         val usageMap = queryUsageStatsMap()
         val launchableApps =
             queryLaunchableAppsFromAllProfiles()
@@ -134,6 +151,7 @@ class AppsRepository(
         if (appCache.loadCachedApps() != sortedApps) {
             appCache.saveApps(sortedApps)
         }
+        packageSequenceSnapshot?.let(appCache::savePackageSequenceSnapshot)
         appCatalogInvalidated = false
         return sortedApps
     }
@@ -168,6 +186,25 @@ class AppsRepository(
     }
 
     // ==================== Private Helpers ====================
+
+    private fun currentBootCount(): Int? =
+        runCatching { Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT) }
+            .getOrNull()
+
+    private fun currentPackageSequenceSnapshot(): AppCache.PackageSequenceSnapshot? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
+        val bootCount = currentBootCount() ?: return null
+        val knownSequence =
+            appCache.getPackageSequenceSnapshot()
+                ?.takeIf { it.bootCount == bootCount }
+                ?.sequenceNumber
+                ?: 0
+        val sequenceNumber =
+            runCatching { packageManager.getChangedPackages(knownSequence)?.sequenceNumber }
+                .getOrNull()
+                ?: knownSequence
+        return AppCache.PackageSequenceSnapshot(bootCount, sequenceNumber)
+    }
 
     private fun queryLaunchableAppsFromAllProfiles(): List<LauncherActivityInfo> {
         val launcherApps = this.launcherApps ?: return emptyList()
