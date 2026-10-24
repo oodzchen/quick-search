@@ -15,7 +15,7 @@ private const val TURKISH_DOTLESS_I = '\u0131'
 private const val ASCII_I = 'i'
 
 object SearchTextNormalizer {
-    private const val PINYIN_CACHE_SIZE = 2_048
+    private const val PINYIN_CACHE_SIZE = 8_192
     private val pinyinVariantsCache =
         object : LinkedHashMap<String, List<String>>(PINYIN_CACHE_SIZE, 0.75f, true) {
             override fun removeEldestEntry(

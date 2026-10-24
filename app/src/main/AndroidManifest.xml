@@ -27,6 +27,10 @@
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
+    <!-- Lets system settings search open OPPO/OnePlus/realme (ColorOS) settings pages directly.
+         Normal-level permission declared by their Settings app; ignored on other devices. -->
+    <uses-permission android:name="oplus.permission.settings.LAUNCH_FOR_EXPORT" />
+
     <!-- Contact Permissions -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />

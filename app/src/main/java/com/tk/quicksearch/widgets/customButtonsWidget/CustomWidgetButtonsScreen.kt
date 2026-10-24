@@ -951,6 +951,8 @@ private sealed class CustomWidgetSearchResult {
                         },
                     minSdk = setting.minSdk,
                     maxSdk = setting.maxSdk,
+                    componentName = setting.componentName,
+                    highlightKey = setting.highlightKey,
                 )
             }
 

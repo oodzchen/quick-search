@@ -220,7 +220,8 @@ class AddToHomeHandler(private val context: Context) {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val intent = Intent(setting.action)
+            // Pinned shortcut extras must be persistable, which rules out the nested highlight bundle.
+            val intent = setting.copy(highlightKey = null).toIntent(context)
 
             val icon = loadDeviceSettingsFallbackIcon()
 

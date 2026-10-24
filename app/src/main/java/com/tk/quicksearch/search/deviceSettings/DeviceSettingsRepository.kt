@@ -14,11 +14,22 @@ class DeviceSettingsRepository(
     private val context: Context,
 ) {
     private val packageManager = context.packageManager
+    private val systemSettingsIndexer = SystemSettingsIndexer(context)
 
-    fun loadShortcuts(): List<DeviceSetting> =
-        allShortcuts()
-            .filter { it.isSupported() }
-            .filter { canResolve(it) }
+    /**
+     * Returns the curated shortcuts followed by every option found in the device's Settings app.
+     * Indexed options with the same title as a curated shortcut are dropped in favour of the
+     * curated entry, which carries hand-written keywords.
+     */
+    fun loadShortcuts(): List<DeviceSetting> {
+        val curated =
+            allShortcuts()
+                .filter { it.isSupported() }
+                .filter { canResolve(it) }
+        val curatedTitles = curated.map { it.title }.toSet()
+        val indexed = systemSettingsIndexer.loadIndex().filterNot { it.title in curatedTitles }
+        return curated + indexed
+    }
 
     fun buildIntent(shortcut: DeviceSetting): Intent = shortcut.toIntent(context)
 

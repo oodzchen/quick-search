@@ -187,6 +187,8 @@ sealed class CustomWidgetButtonAction : Parcelable {
         val minSdk: Int,
         val maxSdk: Int,
         override val customIconBase64: String? = null,
+        val componentName: String? = null,
+        val highlightKey: String? = null,
     ) : CustomWidgetButtonAction() {
         @IgnoredOnParcel
         override val type: CustomWidgetButtonType = CustomWidgetButtonType.SETTING
@@ -205,6 +207,8 @@ sealed class CustomWidgetButtonAction : Parcelable {
                 extras = extras.associate { it.key to it.toTypedValue() },
                 minSdk = minSdk,
                 maxSdk = maxSdk,
+                componentName = componentName,
+                highlightKey = highlightKey,
             )
 
         override fun toJson(): String =
@@ -220,6 +224,8 @@ sealed class CustomWidgetButtonAction : Parcelable {
                 .put(KEY_EXTRAS, settingExtrasToJson(extras))
                 .put(KEY_MIN_SDK, minSdk)
                 .put(KEY_MAX_SDK, maxSdk)
+                .put(KEY_COMPONENT_NAME, componentName)
+                .put(KEY_HIGHLIGHT_KEY, highlightKey)
                 .put(KEY_CUSTOM_ICON_BASE64, customIconBase64)
                 .toString()
     }
@@ -381,6 +387,8 @@ sealed class CustomWidgetButtonAction : Parcelable {
                             extras = jsonToSettingExtras(json.optJSONArray(KEY_EXTRAS)),
                             minSdk = json.optInt(KEY_MIN_SDK, 0),
                             maxSdk = json.optInt(KEY_MAX_SDK, Int.MAX_VALUE),
+                            componentName = json.optString(KEY_COMPONENT_NAME).nullIfBlankOrLiteralNull(),
+                            highlightKey = json.optString(KEY_HIGHLIGHT_KEY).nullIfBlankOrLiteralNull(),
                         )
                     }
 
@@ -462,6 +470,8 @@ private const val KEY_CATEGORIES = "categories"
 private const val KEY_EXTRAS = "extras"
 private const val KEY_MIN_SDK = "minSdk"
 private const val KEY_MAX_SDK = "maxSdk"
+private const val KEY_COMPONENT_NAME = "componentName"
+private const val KEY_HIGHLIGHT_KEY = "highlightKey"
 private const val KEY_SHORTCUT_ID = "shortcutId"
 private const val KEY_SHORT_LABEL = "shortLabel"
 private const val KEY_LONG_LABEL = "longLabel"

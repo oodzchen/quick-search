@@ -43,7 +43,7 @@ Use it as the primary implementation playbook for building new features and upda
 - `FileSearchRepository.kt`
 - `CalendarRepository.kt`
 - `search/data/appShortcutRepository/AppShortcutRepository.kt`
-- `search/deviceSettings/DeviceSettingsRepository.kt`
+- `search/deviceSettings/DeviceSettingsRepository.kt` (curated shortcuts + `SystemSettingsIndexer.kt`, which indexes every option of the device's Settings app at runtime from its preference XML)
 
 ### Preferences
 
